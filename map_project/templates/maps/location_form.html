@@ -1,0 +1,37 @@
+<!-- templates/maps/location_form.html -->
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h4>{% if form.instance.id %}Редактировать{% else %}Добавить{% endif %} местоположение</h4>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    {{ form|crispy }}
+                    <div class="mt-3">
+                        <button type="submit" class="btn btn-primary">Сохранить</button>
+                        <a href="{% url 'home' %}" class="btn btn-secondary">Отмена</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Автозаполнение координат из URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const lat = urlParams.get('lat');
+    const lon = urlParams.get('lon');
+
+    if (lat && lon) {
+        document.getElementById('id_latitude').value = lat;
+        document.getElementById('id_longitude').value = lon;
+    }
+</script>
+{% endblock %}
