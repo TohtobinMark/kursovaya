@@ -1,144 +1,306 @@
-<!-- templates/maps/home.html - обновите начало контента -->
 {% extends 'base.html' %}
 {% load static %}
 
+{% block title %}Карта дистрибуции 1С{% endblock %}
+
 {% block content %}
 <div class="row">
-    <div class="col-md-8">
-        <div class="card">
-            <div class="card-header bg-dark text-white">
-                <h4 class="mb-0"><i class="bi bi-map"></i> Интерактивная карта</h4>
+    <div class="col-lg-8">
+        <div class="card shadow">
+            <div class="card-header" style="background-color: #ffde00; color: #7a1100;">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">
+                        <i class="bi bi-map"></i> Карта дистрибуции 1С
+                    </h4>
+                    <div>
+                        <button class="btn btn-sm btn-light me-1" onclick="toggleLayer('clients')">
+                            🟢 Клиенты ({{ clients|length }})
+                        </button>
+                        <button class="btn btn-sm btn-light" onclick="toggleLayer('requests')">
+                            🟡 Заявки ({{ requests|length }})
+                        </button>
+                    </div>
+                </div>
             </div>
             <div class="card-body p-0">
-                <div id="map" style="width: 100%; height: 500px;"></div>
+                <div id="map" style="height: 550px;"></div>
+            </div>
+            <div class="card-footer bg-light">
+                <div class="row text-center">
+                    <div class="col-md-4">
+                        <span class="badge bg-success me-2">🟢</span>
+                        Активные клиенты
+                    </div>
+                    <div class="col-md-4">
+                        <span class="badge bg-warning me-2">🟡</span>
+                        Заявки на подключение
+                    </div>
+                    <div class="col-md-4">
+                        <span class="badge bg-primary me-2">🔵</span>
+                        Ваша заявка
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <div class="col-md-4">
-        {% if user.is_authenticated %}
-            <!-- Блок для авторизованных пользователей -->
-            <div class="card mb-4">
-                <div class="card-header bg-success text-white">
-                    <h5 class="mb-0"><i class="bi bi-plus-circle"></i> Добавить маркер</h5>
-                </div>
-                <div class="card-body">
-                    <a href="{% url 'add_location' %}" class="btn btn-success w-100">
-                        <i class="bi bi-plus-lg"></i> Добавить новое место
-                    </a>
-                    <p class="text-muted small mt-2">
-                        <i class="bi bi-info-circle"></i> Кликните на карте для выбора координат
-                    </p>
-                </div>
+    <div class="col-lg-4">
+        <!-- Блок для добавления заявки -->
+        <div class="card shadow mb-4">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="bi bi-plus-circle"></i> Оставить заявку</h5>
             </div>
-
-            <div class="card">
-                <div class="card-header bg-info text-white">
-                    <h5 class="mb-0"><i class="bi bi-geo"></i> Ваши маркеры ({{ locations|length }})</h5>
-                </div>
-                <div class="card-body" style="max-height: 500px; overflow-y: auto;">
-                    {% if locations %}
-                        <!-- ... существующий код списка маркеров ... -->
-                    {% else %}
-                        <div class="text-center text-muted py-4">
-                            <i class="bi bi-map display-6"></i>
-                            <p class="mt-2">У вас пока нет добавленных маркеров.</p>
+            <div class="card-body">
+                {% if user.is_authenticated %}
+                    {% if user_request %}
+                        <div class="alert alert-info">
+                            <i class="bi bi-check-circle"></i>
+                            У вас есть активная заявка #{{ user_request.id }}
+                            <a href="{% url 'request_detail' user_request.id %}" class="alert-link">
+                                Статус заявки →
+                            </a>
                         </div>
+                        <div class="mt-2">
+                            <a href="{% url 'my_requests' %}" class="btn btn-outline-primary w-100">
+                                <i class="bi bi-list-ul"></i> Мои заявки
+                            </a>
+                        </div>
+                    {% else %}
+                        <p class="text-muted">
+                            Отметьте на карте местоположение вашего предприятия
+                        </p>
+                        <a href="{% url 'add_request' %}" class="btn btn-success w-100">
+                            <i class="bi bi-geo-alt"></i> Оставить заявку
+                        </a>
                     {% endif %}
-                </div>
-            </div>
-
-        {% else %}
-            <!-- Блок для неавторизованных пользователей -->
-            <div class="card mb-4">
-                <div class="card-header bg-warning text-dark">
-                    <h5 class="mb-0"><i class="bi bi-exclamation-triangle"></i> Требуется авторизация</h5>
-                </div>
-                <div class="card-body text-center">
-                    <i class="bi bi-lock display-4 text-warning mb-3"></i>
-                    <p>Для добавления маркеров необходимо войти в систему</p>
-
-                    <div class="d-grid gap-2">
-                        <a href="{% url 'login' %}" class="btn btn-primary">
-                            <i class="bi bi-box-arrow-in-right"></i> Войти
-                        </a>
-                        <a href="{% url 'register' %}" class="btn btn-success">
-                            <i class="bi bi-person-plus"></i> Зарегистрироваться
-                        </a>
-                    </div>
-
-                    <div class="mt-3 text-muted small">
-                        <p>Демо-доступ:</p>
-                        <p><strong>Логин:</strong> demo<br><strong>Пароль:</strong> demopassword123</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-header bg-secondary text-white">
-                    <h5 class="mb-0"><i class="bi bi-info-circle"></i> О проекте</h5>
-                </div>
-                <div class="card-body">
-                    <p>Это демонстрационный проект карты с маркерами.</p>
-                    <p class="small text-muted">
-                        После регистрации вы сможете:
+                {% else %}
+                    <p class="text-muted">
+                        Чтобы оставить заявку, войдите или зарегистрируйтесь
                     </p>
-                    <ul class="small">
-                        <li>Добавлять маркеры на карту</li>
-                        <li>Редактировать и удалять их</li>
-                        <li>Сохранять свои места</li>
-                    </ul>
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'login' %}" class="btn btn-primary">Войти</a>
+                        <a href="{% url 'register' %}" class="btn btn-outline-success">Регистрация</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Статистика -->
+        <div class="card shadow mb-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="bi bi-bar-chart"></i> Статистика</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between">
+                        <span>Наши клиенты:</span>
+                        <strong>{{ clients|length }}</strong>
+                    </div>
+                    <div class="progress mt-1">
+                        <div class="progress-bar bg-success" style="width: 100%"></div>
+                    </div>
+                </div>
+                <div>
+                    <div class="d-flex justify-content-between">
+                        <span>Активные заявки:</span>
+                        <strong>{{ requests|length }}</strong>
+                    </div>
+                    <div class="progress mt-1">
+                        <div class="progress-bar bg-warning" style="width: {{ requests|length }}%"></div>
+                    </div>
                 </div>
             </div>
+        </div>
+
+        <!-- Последние заявки -->
+        {% if requests|slice:":3" %}
+        <div class="card shadow">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0"><i class="bi bi-clock-history"></i> Последние заявки</h5>
+            </div>
+            <div class="card-body">
+                {% for req in requests|slice:":3" %}
+                    <div class="border-bottom pb-2 mb-2">
+                        <div class="d-flex justify-content-between">
+                            <strong>{{ req.company_name }}</strong>
+                            <span class="badge bg-{{ req.get_status_color }}">
+                                {{ req.get_status_display_ru }}
+                            </span>
+                        </div>
+                        <small class="text-muted">
+                            {{ req.city }} • {{ req.created_at|date:"d.m.Y" }}
+                        </small>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
         {% endif %}
     </div>
 </div>
+{% endblock %}
 
-<!-- Яндекс Карты API -->
-<script src="https://api-maps.yandex.ru/2.1/?apikey={{ YANDEX_MAPS_API_KEY }}&lang=ru_RU"></script>
+{% block extra_scripts %}
+<!-- Leaflet.js для карты -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
-    let map;
-
     // Инициализация карты
-    ymaps.ready(init);
+    var map = L.map('map').setView([53.7158, 91.4473], 10);
 
-    function init() {
-        map = new ymaps.Map('map', {
-            center: [55.7558, 37.6173], // Москва по умолчанию
-            zoom: 10
-        });
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors',
+        maxZoom: 19
+    }).addTo(map);
 
-        // Добавление маркеров
-        {% for location in locations %}
-            var marker = new ymaps.Placemark(
-                [{{ location.latitude }}, {{ location.longitude }}],
-                {
-                    balloonContent: `
-                        <strong>{{ location.title }}</strong><br>
-                        {{ location.description }}<br>
-                        <a href="{% url 'edit_location' location.id %}">Редактировать</a>
-                    `
-                },
-                {
-                    preset: 'islands#icon',
-                    iconColor: '#0095b6'
+    // Группы для слоев
+    var clientLayer = L.layerGroup().addTo(map);
+    var requestLayer = L.layerGroup().addTo(map);
+
+    // ========== ДОБАВЛЯЕМ КЛИЕНТОВ (ЗЕЛЕНЫЕ МАРКЕРЫ) ==========
+    {% for client in clients %}
+        var marker = L.marker([{{ client.latitude }}, {{ client.longitude }}], {
+            icon: L.divIcon({
+                className: 'custom-marker',
+                html: '<div style="background-color: #2ecc71; width: 24px; height: 24px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>',
+                iconSize: [24, 24],
+                popupAnchor: [0, -12]
+            })
+        }).bindPopup(`
+            <div style="min-width: 250px;">
+                <h6><strong>{{ client.title|escapejs }}</strong></h6>
+                <p>{{ client.description|escapejs|truncatechars:100 }}</p>
+                <p><small>С нами с: {{ client.created_at|date:"m.Y" }}</small></p>
+                <div class="mt-2">
+                    <a href="tel:+73902313145" class="btn btn-sm btn-primary w-100">
+                        <i class="bi bi-telephone"></i> Хочу как у них!
+                    </a>
+                </div>
+            </div>
+        `);
+        marker.addTo(clientLayer);
+    {% endfor %}
+
+    // ========== ДОБАВЛЯЕМ ЗАЯВКИ (ЖЕЛТЫЕ/СИНИЕ МАРКЕРЫ) ==========
+    {% for req in requests %}
+        // Определяем цвет: синий если это заявка текущего пользователя, иначе желтый
+        var markerColor = '{% if user.is_authenticated and user_request and user_request.id == req.id %}#3b82f6{% else %}#f59e0b{% endif %}';
+
+        var marker = L.marker([{{ req.latitude }}, {{ req.longitude }}], {
+            icon: L.divIcon({
+                className: 'custom-marker',
+                html: `<div style="background-color: ${markerColor}; width: 24px; height: 24px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>`,
+                iconSize: [24, 24],
+                popupAnchor: [0, -12]
+            })
+        }).bindPopup(`
+            <div style="min-width: 280px;">
+                <h6><strong>{{ req.company_name|escapejs }}</strong></h6>
+                <p><small>{{ req.address|escapejs }}</small></p>
+                <p><small>Сфера: {{ req.get_business_type_display }}</small></p>
+                <p><small>Сотрудников: {{ req.employees_count }}</small></p>
+                <div class="mb-2">
+                    <small>Потребности:</small>
+                    <div>
+                        {% if req.need_1c_buh %}✅ 1С:Бухгалтерия {% endif %}
+                        {% if req.need_1c_trade %}✅ Управление торговлей {% endif %}
+                        {% if req.need_1c_salary %}✅ Зарплата и кадры {% endif %}
+                        {% if req.need_cloud %}☁️ Облачная версия {% endif %}
+                    </div>
+                </div>
+                <div class="alert alert-warning mt-2 small">
+                    <i class="bi bi-clock-history"></i>
+                    Статус: {{ req.get_status_display_ru }}
+                </div>
+                <div class="mt-2">
+                    {% if user.is_authenticated and user_request and user_request.id == req.id %}
+                        <a href="{% url 'request_detail' req.id %}" class="btn btn-sm btn-info w-100">
+                            <i class="bi bi-eye"></i> Моя заявка
+                        </a>
+                    {% else %}
+                        <a href="{% url 'add_request' %}?lat={{ req.latitude }}&lon={{ req.longitude }}"
+                           class="btn btn-sm btn-success w-100">
+                            <i class="bi bi-plus-circle"></i> Тоже хочу!
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        `);
+        marker.addTo(requestLayer);
+    {% endfor %}
+
+    // ========== КЛИК ПО КАРТЕ ДЛЯ ДОБАВЛЕНИЯ ЗАЯВКИ ==========
+    map.on('click', function(e) {
+        {% if user.is_authenticated %}
+            {% if user_request %}
+                alert('У вас уже есть активная заявка. Мы свяжемся с вами в ближайшее время.');
+            {% else %}
+                if (confirm(`Добавить заявку по адресу?\nКоординаты: ${e.latlng.lat.toFixed(6)}, ${e.latlng.lng.toFixed(6)}`)) {
+                    window.location.href = `{% url 'add_request' %}?lat=${e.latlng.lat.toFixed(6)}&lon=${e.latlng.lng.toFixed(6)}`;
                 }
-            );
-            map.geoObjects.add(marker);
-        {% endfor %}
-
-        // Обработка клика по карте для добавления нового маркера
-        map.events.add('click', function (e) {
-            var coords = e.get('coords');
-            if (confirm(`Добавить маркер по координатам: ${coords[0].toFixed(6)}, ${coords[1].toFixed(6)}?`)) {
-                window.location.href = `{% url 'add_location' %}?lat=${coords[0].toFixed(6)}&lon=${coords[1].toFixed(6)}`;
+            {% endif %}
+        {% else %}
+            if (confirm('Для добавления заявки необходимо войти. Перейти на страницу входа?')) {
+                window.location.href = "{% url 'login' %}";
             }
-        });
+        {% endif %}
+    });
+
+    // ========== ФУНКЦИЯ ПЕРЕКЛЮЧЕНИЯ СЛОЕВ ==========
+    function toggleLayer(layer) {
+        if (layer === 'clients') {
+            if (map.hasLayer(clientLayer)) {
+                map.removeLayer(clientLayer);
+                document.querySelector('button[onclick="toggleLayer(\'clients\')"]').classList.remove('btn-light');
+                document.querySelector('button[onclick="toggleLayer(\'clients\')"]').classList.add('btn-secondary');
+            } else {
+                map.addLayer(clientLayer);
+                document.querySelector('button[onclick="toggleLayer(\'clients\')"]').classList.remove('btn-secondary');
+                document.querySelector('button[onclick="toggleLayer(\'clients\')"]').classList.add('btn-light');
+            }
+        } else if (layer === 'requests') {
+            if (map.hasLayer(requestLayer)) {
+                map.removeLayer(requestLayer);
+                document.querySelector('button[onclick="toggleLayer(\'requests\')"]').classList.remove('btn-light');
+                document.querySelector('button[onclick="toggleLayer(\'requests\')"]').classList.add('btn-secondary');
+            } else {
+                map.addLayer(requestLayer);
+                document.querySelector('button[onclick="toggleLayer(\'requests\')"]').classList.remove('btn-secondary');
+                document.querySelector('button[onclick="toggleLayer(\'requests\')"]').classList.add('btn-light');
+            }
+        }
     }
 
-    function panToMarker(lat, lon) {
-        map.panTo([lat, lon], { flying: true });
+    // ========== ФУНКЦИЯ ЦЕНТРИРОВАНИЯ НА МАРКЕРЕ ==========
+    function focusLocation(lat, lon) {
+        map.setView([lat, lon], 15);
+    }
+
+    // Если в URL есть координаты - центрируем карту
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('lat') && urlParams.has('lon')) {
+        map.setView([parseFloat(urlParams.get('lat')), parseFloat(urlParams.get('lon'))], 15);
     }
 </script>
+
+<style>
+    .custom-marker {
+        background: transparent;
+        border: none;
+    }
+    .custom-marker div {
+        transition: transform 0.2s;
+        cursor: pointer;
+    }
+    .custom-marker div:hover {
+        transform: scale(1.2);
+    }
+    .leaflet-popup-content {
+        min-width: 260px;
+    }
+    .btn-sm {
+        font-size: 0.8rem;
+        padding: 0.25rem 0.5rem;
+    }
+</style>
 {% endblock %}

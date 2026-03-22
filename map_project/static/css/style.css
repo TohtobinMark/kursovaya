@@ -1,79 +1,21 @@
-/* static/css/style.css */
-/* Дополнительные стили для карты */
-
-/* Стили для попапов карты */
-.leaflet-popup-content {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-
-.leaflet-popup-content h6 {
-    margin-top: 0;
-    color: #0d6efd;
-    border-bottom: 1px solid #dee2e6;
-    padding-bottom: 5px;
-}
-
-/* Анимация для кнопок */
-.btn {
-    transition: all 0.2s ease-in-out;
-}
-
-.btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-}
-
-/* Стили для карточек */
-.card {
-    border: none;
-    transition: transform 0.3s;
-}
-
-.card:hover {
-    transform: translateY(-5px);
-}
-
-/* Стили для списка маркеров */
-.list-group-item {
-    border-left: none;
-    border-right: none;
-    border-radius: 0 !important;
-}
-
-.list-group-item:first-child {
-    border-top: none;
-}
-
-.list-group-item:last-child {
-    border-bottom: none;
-}
-
-/* Кастомный скроллбар */
-::-webkit-scrollbar {
-    width: 8px;
-}
-
-::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb {
-    background: #c1c1c1;
-    border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: #a8a8a8;
-}
-
-/* Адаптивность для маленьких экранов */
-@media (max-width: 768px) {
-    #map {
-        height: 300px !important;
+<style>
+    .custom-marker {
+        background: transparent;
+        border: none;
     }
-
-    .card-body {
-        padding: 1rem !important;
+    .custom-marker div {
+        transition: none;  /* Убираем анимацию */
+        cursor: pointer;
     }
-}
+    /* Убираем эффект при наведении */
+    .custom-marker div:hover {
+        transform: none;  /* Убираем увеличение */
+    }
+    .leaflet-popup-content {
+        min-width: 260px;
+    }
+    .btn-sm {
+        font-size: 0.8rem;
+        padding: 0.25rem 0.5rem;
+    }
+</style>
