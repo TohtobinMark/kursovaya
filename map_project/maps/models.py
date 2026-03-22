@@ -20,7 +20,6 @@ class Location(models.Model):
         return self.title
 
 
-# НОВАЯ МОДЕЛЬ: Заявка на дистрибутив 1С
 class DistributionRequest(models.Model):
     """Заявка на подключение дистрибутива 1С"""
 
