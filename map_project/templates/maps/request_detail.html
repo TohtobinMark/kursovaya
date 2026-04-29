@@ -110,17 +110,74 @@
     </div>
 </div>
 
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
+<script src="https://api-maps.yandex.ru/2.1/?apikey={{ YANDEX_MAPS_API_KEY }}&lang=ru_RU"></script>
 <script>
-    var miniMap = L.map('mini-map').setView([{{ request.latitude }}, {{ request.longitude }}], 13);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap'
-    }).addTo(miniMap);
-    
-    L.marker([{{ request.latitude }}, {{ request.longitude }}])
-        .addTo(miniMap)
-        .bindPopup('<b>{{ request.company_name|escapejs }}</b>');
+    let miniMap;
+
+    function initMiniMap() {
+        miniMap = new ymaps.Map('mini-map', {
+            center: [{{ request.latitude }}, {{ request.longitude }}],
+            zoom: 13,
+            controls: ['zoomControl', 'fullscreenControl']
+        });
+
+        // Определяем цвет маркера в зависимости от статуса заявки
+        let markerColor = '';
+        let markerColorHex = '';
+
+{% if request.status == 'pending' %}
+    markerColorHex = '#ea580c';   // темно-оранжевый (лучше виден на желтых дорогах)
+{% elif request.status == 'in_work' %}
+    markerColorHex = '#f97316';   // оранжевый
+{% elif request.status == 'completed' %}
+    markerColorHex = '#2ecc71';   // зеленый
+{% elif request.status == 'rejected' %}
+    markerColorHex = '#ef4444';   // красный
+{% else %}
+    markerColorHex = '#3b82f6';   // синий
+{% endif %}
+
+        var customMarkerLayout = ymaps.templateLayoutFactory.createClass(
+    '<div style="background-color: ' + markerColorHex + '; ' +
+                'width: 24px; height: 24px; ' +
+                'border-radius: 50%; ' +
+                'border: 3px solid #333333; ' +      // ← темная обводка
+                'box-shadow: 0 2px 8px rgba(0,0,0,0.4); ' +
+                'cursor: pointer;">' +
+     '</div>'
+     );
+
+        // Создаем маркер с выбранным цветом
+        var marker = new ymaps.Placemark(
+            [{{ request.latitude }}, {{ request.longitude }}],
+            {
+                balloonContent: `
+                    <div style="min-width: 200px;">
+                        <b>{{ request.company_name|escapejs }}</b><br>
+                        <span style="color: ${markerColor === 'зеленый' ? '#2ecc71' : (markerColor === 'желтый' ? '#f59e0b' : (markerColor === 'синий' ? '#3b82f6' : (markerColor === 'оранжевый' ? '#f97316' : '#ef4444')))}">
+                            Статус: {{ request.get_status_display|escapejs }}
+                        </span>
+                    </div>
+                `,
+                hintContent: '{{ request.company_name|escapejs }} ({{ request.get_status_display|escapejs }})'
+            },
+            {
+                iconLayout: customMarkerLayout
+            }
+        );
+
+        miniMap.geoObjects.add(marker);
+    }
+
+    ymaps.ready(initMiniMap);
 </script>
+
+<!-- Если нужно обработать случай, когда контейнер карты имеет фиксированный размер -->
+<style>
+    #mini-map {
+        width: 100%;
+        height: 300px; /* Или любая другая высота */
+        border-radius: 8px; /* Опционально: скругление углов */
+    }
+</style>
 {% endblock %}

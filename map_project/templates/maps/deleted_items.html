@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Корзина{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header" style="background-color: #7a1100; color: white;">
+            <h4 class="mb-0">
+                <i class="bi bi-trash"></i> Корзина (мягко удаленные записи)
+            </h4>
+        </div>
+        <div class="card-body">F
+            <form method="get" class="mb-4"
+                  hx-get="{% url 'deleted_items' %}"
+                  hx-target="#delete-container"
+                  hx-trigger="change"
+                  hx-swap="innerHTML"
+                  hx-indicator=".htmx-indicator"
+                  hx-push-url="false">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label">Тип записи</label>
+                        <select class="form-select" name="type">
+                            <option value="">Все</option>
+                            <option value="license" {% if request.GET.type == 'license' %}selected{% endif %}>Лицензии</option>
+                            <option value="service" {% if request.GET.type == 'service' %}selected{% endif %}>Сервисы</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label">Сортировка</label>
+                        <select class="form-select" name="sort">
+                            <option value="-delete_date" {% if request.GET.sort == '-delete_date' %}selected{% endif %}>
+                                Сначала недавно удаленные
+                            </option>
+                            <option value="delete_date" {% if request.GET.sort == 'delete_date' %}selected{% endif %}>
+                                Сначала давно удаленные
+                            </option>
+                            <option value="name" {% if request.GET.sort == 'name' %}selected{% endif %}>
+                                По названию (А-Я)
+                            </option>
+                            <option value="-name" {% if request.GET.sort == '-name' %}selected{% endif %}>
+                                По названию (Я-А)
+                            </option>
+                            <option value="price" {% if request.GET.sort == 'price' %}selected{% endif %}>
+                                По цене (возрастание)
+                            </option>
+                            <option value="-price" {% if request.GET.sort == '-price' %}selected{% endif %}>
+                                По цене (убывание)
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-2 d-flex align-items-end">
+                        <a href="{% url 'deleted_items' %}" class="btn btn-secondary w-100">
+                            <i class="bi bi-arrow-repeat"></i> Сброс
+                        </a>
+                    </div>
+                </div>
+            </form>
+
+            <div id="delete-container">
+                {% include 'maps/deleted_items_content.html' %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .htmx-indicator {
+        display: none;
+    }
+    .htmx-request .htmx-indicator {
+        display: block !important;
+    }
+    .htmx-request #delete-container {
+        opacity: 0.5;
+        transition: opacity 0.2s ease;
+    }
+</style>
+
+<script>
+function restoreItem(type, id) {
+    if (confirm('Восстановить запись?')) {
+        fetch(`/${type}/${id}/restore/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/json',
+            },
+        }).then(response => {
+            if (response.ok) {
+                location.reload();
+            } else {
+                alert('Ошибка при восстановлении');
+            }
+        }).catch(error => {
+            console.error('Error:', error);
+            alert('Ошибка при восстановлении');
+        });
+    }
+}
+
+function hardDeleteItem(type, id) {
+    if (confirm('Удалить запись НАВСЕГДА? Это действие нельзя отменить!')) {
+        fetch(`/${type}/${id}/hard-delete/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/json',
+            },
+        }).then(response => {
+            if (response.ok) {
+                location.reload();
+            } else {
+                alert('Ошибка при удалении');
+            }
+        }).catch(error => {
+            console.error('Error:', error);
+            alert('Ошибка при удалении');
+        });
+    }
+}
+</script>
+{% endblock %}

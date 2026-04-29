@@ -32,17 +32,18 @@
                                         </td>
                                         <td>{{ req.created_at|date:"d.m.Y H:i" }}</td>
                                         <td>
-                                            <span class="badge bg-{{ req.get_status_color }}">
+                                            <span class="badge bg-{{ req.get_status_color }}"
+                                                  style="{% if req.get_status_color == 'warning' %}color: #333333 !important;{% endif %}">
                                                 {{ req.get_status_display_ru }}
                                             </span>
                                         </td>
                                         <td>
                                             <a href="{% url 'request_detail' req.id %}" class="btn btn-sm btn-info">
-                                                <i class="bi bi-eye"></i> Подробнее
+                                                Подробнее
                                             </a>
                                             {% if req.status == 'pending' or req.status == 'in_work' %}
                                                 <a href="{% url 'cancel_request' req.id %}" class="btn btn-sm btn-danger">
-                                                    <i class="bi bi-x-circle"></i> Отменить
+                                                    Отменить
                                                 </a>
                                             {% endif %}
                                         </td>

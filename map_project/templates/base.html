@@ -1,81 +1,144 @@
-<!-- templates/base.html -->
 <!DOCTYPE html>
+{% load static %}
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Карта с маркерами{% endblock %}</title>
+    <title>{% block title %}Карта дистрибуции 1С{% endblock %}</title>
+    <link rel="icon" href="{% static 'favicon.png' %}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
-        <!-- ПОДКЛЮЧАЕМ НАШИ СТИЛИ -->
-    <link rel="stylesheet" href="/static/css/style.css">
-    <style>
-        /* inline стили можно оставить здесь */
-        body { padding-bottom: 50px; }
-    </style>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <script src="{% static 'js/htmx.min.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'css/uikit.css' %}">
+    <script src="{% static 'js/uikit.js' %}"></script>
+    <script src="{% static 'js/uikit-icons.js' %}"></script>
 </head>
 <body>
-<nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #ffde00;">
+
+<nav class="navbar navbar-expand-lg navbar-dark fixed-top" style="background-color: #e0bc00;">
     <div class="container">
-        <a class="navbar-brand" href="{% url 'home' %}" style="color: #7a1100;">
-            ООО "Инфоком плюс"
+        <a class="navbar-brand" href="{% url 'home' %}" style="color: #7a1100; margin-left: -60px;">
+            <img src="{% static 'infocom.png' %}" width="210" height="40" alt="Инфоком">
         </a>
 
-        <div class="navbar-nav ms-auto">
-            {% if user.is_authenticated %}
-                <div class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" role="button"
-   data-bs-toggle="dropdown" style="color: #7a1100;">
-    <i class="bi bi-person-circle" style="color: #7a1100;"></i> {{ user.username }}
-</a>
-                    <ul class="dropdown-menu dropdown-menu-end">
-                        <li>
-                            <a class="dropdown-item" href="{% url 'home' %}">
-                                <i class="bi bi-map"></i> Моя карта
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item" href="{% url 'add_location' %}">
-                                <i class="bi bi-plus-circle"></i> Добавить маркер
-                            </a>
-                        </li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li>
-                            <form action="{% url 'logout' %}" method="post" style="display: inline;">
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain">
+            <span class="navbar-toggler-icon" style="filter: invert(1);"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarMain">
+            <ul class="navbar-nav mx-auto" style="gap: 15px;">
+                <li class="nav-item mx-2">
+                    <a class="nav-link" href="{% url 'home' %}#map-section" style="color: #7a1100;">
+                        Карта
+                    </a>
+                </li>
+                <li class="nav-item mx-2">
+                    <a class="nav-link" href="{% url 'home' %}#licenses-section" style="color: #7a1100;">
+                        Лицензии
+                    </a>
+                </li>
+                <li class="nav-item mx-2">
+                    <a class="nav-link" href="{% url 'home' %}#services-section" style="color: #7a1100;">
+                        Сервисы
+                    </a>
+                </li>
+                {% if user.is_authenticated %}
+                <li class="nav-item mx-2">
+                    <a class="nav-link" href="{% url 'my_requests' %}" style="color: #7a1100;">
+                        Мои заявки
+                    </a>
+                </li>
+                {% endif %}
+                {% if user.is_staff %}
+                <li class="nav-item mx-2">
+                    <a class="nav-link" href="{% url 'admin_requests' %}" style="color: #7a1100;">
+                        Все заявки
+                    </a>
+                </li>
+                {% endif %}
+                {% if user.is_staff %}
+                <li class="nav-item mx-2">
+                    <a class="nav-link" href="{% url 'admin_statistics' %}" style="color: #7a1100;">
+                        Статистика
+                    </a>
+                </li>
+                {% endif %}
+                {% if user.is_staff %}
+<li class="nav-item mx-2">
+    <a class="nav-link" href="{% url 'deleted_items' %}" style="color: #7a1100;">
+        <i class="bi bi-trash"></i> Корзина
+    </a>
+</li>
+{% endif %}
+            </ul>
+
+            <div class="navbar-nav ms-auto">
+                {% if user.is_authenticated %}
+                    <div class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" style="color: #7a1100;">
+                            <i class="bi bi-person-circle" style="color: #7a1100;"></i> {{ user.username }}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#map-section"><i class="bi bi-map"></i> Карта</a></li>
+                            <li><a class="dropdown-item" href="#licenses-section"><i class="bi bi-box-seam"></i> Лицензии</a></li>
+                            <li><a class="dropdown-item" href="#services-section"><i class="bi bi-cloud"></i> Сервисы</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{% url 'add_location' %}"><i class="bi bi-plus-circle"></i> Добавить маркер</a></li>
+                            <li><a class="dropdown-item" href="{% url 'my_requests' %}"><i class="bi bi-list-ul"></i> Мои заявки</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <form action="{% url 'logout' %}" method="post">
                                     {% csrf_token %}
-                                    <button type="submit" class="dropdown-item" style="background: none; border: none; width: 100%; text-align: left;">
-                                        <i class="bi bi-box-arrow-right"></i> Выйти
-                                    </button>
+                                    <button type="submit" class="dropdown-item">Выйти</button>
                                 </form>
-                        </li>
-                    </ul>
-                </div>
-            {% else %}
-                                    <a class="nav-link" href="{% url 'login' %}" style="color: #7a1100;">
-                        <i class="bi bi-box-arrow-in-right"></i> Войти
-                    </a>
+                            </li>
+                        </ul>
+                    </div>
+                {% else %}
+                    <a class="nav-link" href="{% url 'login' %}" style="color: #7a1100;">
+                        <i class="bi bi-box-arrow-in-right"></i> Войти</a>
                     <a class="nav-link" href="{% url 'register' %}" style="color: #7a1100;">
-                        <i class="bi bi-person-plus"></i> Регистрация
-                    </a>
-            {% endif %}
+                        <i class="bi bi-person-plus"></i> Регистрация</a>
+                {% endif %}
+            </div>
         </div>
     </div>
 </nav>
 
-    <div class="container mt-4">
-        {% if messages %}
+<div style="padding-top: 80px;"></div>
+
+<div class="container mt-4">
+    {% block content %}{% endblock %}
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{% static 'js/notifications.js' %}"></script>
+<script>
+    // Преобразование Django messages в наши уведомления
+    document.addEventListener('DOMContentLoaded', function() {
+        const messages = [
             {% for message in messages %}
-                <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
+                {
+                    type: '{{ message.tags }}',
+                    message: '{{ message.message|escapejs }}'
+                },
             {% endfor %}
-        {% endif %}
+        ];
 
-        {% block content %}{% endblock %}
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+        messages.forEach(function(msg) {
+            if (msg.type === 'success') {
+                notify.success('Успешно!', msg.message);
+            } else if (msg.type === 'warning') {
+                notify.warning('Внимание!', msg.message);
+            } else if (msg.type === 'error') {
+                notify.error('Ошибка!', msg.message);
+            } else if (msg.type === 'info') {
+                notify.info('Информация', msg.message);
+            }
+        });
+    });
+</script>
 {% block extra_scripts %}{% endblock %}
 </body>
 </html>

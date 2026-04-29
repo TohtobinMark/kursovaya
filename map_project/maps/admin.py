@@ -1,15 +1,12 @@
-# maps/admin.py
 from django.contrib import admin
 from .models import Location, DistributionRequest
 
-# Регистрируем модель Location (клиенты)
 @admin.register(Location)
 class LocationAdmin(admin.ModelAdmin):
     list_display = ['id', 'title', 'user', 'created_at']
     list_filter = ['created_at']
     search_fields = ['title', 'description']
 
-# Регистрируем модель DistributionRequest (заявки)
 @admin.register(DistributionRequest)
 class DistributionRequestAdmin(admin.ModelAdmin):
     list_display = ['id', 'company_name', 'user', 'status', 'created_at', 'phone']
